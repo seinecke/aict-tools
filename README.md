@@ -6,35 +6,35 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 
 `telescope_events`:
 - `array_event_id`: The id of the event
-- `run_id`: 
+- `run_id`: The id of the MC simulation run
 - `intensity`: The total charge
-- `skewness`: The 3rd moment along the major axis
-- `kurtosis`: The 4th moment along the major axis
-- `length` [deg]: The 2nd moment along the major axis
-- `width` [deg]: The 2nd moment along the minor axis
-- `x` [mm]: The x-coordinate of the Center of Gravity
-- `y` [mm]: The y-coordinate of the Center of Gravity
-- `psi`: Angle between `length` and x-axis
-- `r`: Center of Gravity in polar coordinates
-- `phi`: Center of Gravity in polar coordinates
+- `x` [mm]: The x-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
+- `y` [mm]: The y-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
+- `psi` [rad]: Angle between `length` and x-axis
+- `r` [deg]: Center of Gravity in polar coordinates
+- `phi` [rad]: Center of Gravity in polar coordinates
+- `length` [deg]: Eigen value of PCA
+- `width` [deg]: Eigen value of PCA
+- `skewness` [deg]: The 3rd moment along the major axis
+- `kurtosis` [deg]: The 4th moment along the major axis
 
 
 `array_events`:
-- `array_event_id`: The id of the event
-- `altitude_raw`:
-- `azimuth_raw`
-- `mc_alt`
-- `mc_az`
-- `mc_core_x`
-- `mc_core_y`
-- `mc_energy`
-- `mc_h_first_int`
-- `mc_x_max`
-- `shower_primary_id`
+- `array_event_id`: The  of the event
+- `altitude_raw` [rad]: Telescope pointing altitude
+- `azimuth_raw` [rad]: Telescope pointing azimuth
+- `mc_alt` [rad]: True source position (altitude)
+- `mc_az` [rad]: True source position (azimuth)
+- `mc_core_x` [m]: True core position (x-coordinate)
+- `mc_core_y` [m]: True core position (x-coordinate)
+- `mc_energy` [TeV]: True energy
+- `mc_h_first_int` [m]: True height of first interaction
+- `mc_x_max [m]`: Height of the shower maximum
+- `shower_primary_id`: Id of the primary incident (0: gamma)
 - `t_cpu`
 
 `runs`:
-- `atmosphere
+- `atmosphere'
 - `core_pos_mode`
 - `corsika_bunchsize`
 - `corsika_high_E_detail`
@@ -48,8 +48,8 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 - `detector_prog_id`
 - `detector_prog_start`
 - `diffuse`
-- `energy_range_max`
-- `energy_range_min`
+- `energy_range_max [TeV]`
+- `energy_range_min [TeV]`
 - `injection_height`
 - `max_alt`
 - `max_az`
