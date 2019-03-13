@@ -34,7 +34,7 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 - `t_cpu`
 
 `runs`:
-- `atmosphere'
+- `atmosphere`
 - `core_pos_mode`
 - `corsika_bunchsize`
 - `corsika_high_E_detail`
