@@ -70,23 +70,19 @@ def main(input_path, output_basename, fraction, name, inkey, key, telescope, fmt
 
     np.random.seed(seed)
 
-    if telescope == 'fact':
-        split_single_telescope_data(input_path, output_basename, fmt, inkey, key, fraction, name)
-    else:
-        split_multi_telescope_data(input_path, output_basename, fraction, name)
+    split_telescope_data(input_path, output_basename, fraction, name)
 
 
-def split_multi_telescope_data(input_path, output_basename, fraction, name):
+def split_telescope_data(input_path, output_basename, fraction, name):
 
     array_events = read_data(input_path, key='array_events')
     telescope_events = read_data(input_path, key='telescope_events')
     runs = read_data(input_path, key='runs')
 
     # split by runs
-
     ids = set(runs.run_id)
     log.debug(f'All runs:{ids}')
-    n_total = len(runs)
+    n_total = len(ids)
 
     log.info(f'Found a total of {n_total} runs in the file')
     num_runs = split_indices(ids, n_total, fractions=fraction)
@@ -106,39 +102,3 @@ def split_multi_telescope_data(input_path, output_basename, fraction, name):
         log.debug(f'Runs minus selected runs {ids - set(selected_run_ids)}')
         ids = ids - set(selected_run_ids)
 
-
-def split_single_telescope_data(input_path, output_basename, fmt, inkey, key, fraction, name):
-
-    if fmt in ['hdf5', 'hdf', 'h5']:
-        data = read_data(input_path, key=inkey)
-    elif fmt == 'csv':
-        data = read_data(input_path)
-
-    assert len(fraction) == len(name), 'You must give a name for each fraction'
-
-    if sum(fraction) != 1:
-        warnings.warn('Fractions do not sum up to 1')
-
-    ids = data.index.values
-    n_total = len(data)
-
-    log.info('Found a total of {} single-telescope events in the file'.format(len(data)))
-
-    num_ids = split_indices(ids, n_total, fractions=fraction)
-
-    for n, part_name in zip(num_ids, name):
-        selected_ids = np.random.choice(ids, size=n, replace=False)
-        selected_data = data.loc[selected_ids]
-
-        if fmt in ['hdf5', 'hdf', 'h5']:
-            path = output_basename + '_' + part_name + '.hdf5'
-            log.info('Writing {} telescope-array events to: {}'.format(n, path))
-            write_data(selected_data, path, key=key, use_h5py=True, mode='w')
-
-        elif fmt == 'csv':
-            filename = output_basename + '_' + part_name + '.csv'
-            log.info('Writing {} telescope-array events to: {}'.format(n, filename))
-            selected_data.to_csv(filename, index=False)
-
-        data = data.loc[list(set(data.index.values) - set(selected_data.index.values))]
-        ids = data.index.values

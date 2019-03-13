@@ -48,3 +48,50 @@ def calc_true_disp(source_x, source_y, cog_x, cog_y, delta):
     true_sign = np.sign(np.abs(delta - true_delta) - np.pi / 2)
 
     return true_disp, true_sign
+
+
+from astropy import units as u
+from astropy.coordinates import SkyCoord, AltAz
+from ctapipe.coordinates import CameraFrame
+
+def horizontal_to_camera(az, alt, az_pointing, alt_pointing):
+    hf = AltAz()
+
+    pointing = SkyCoord(
+                alt=alt_pointing.values*u.rad,
+                az=az_pointing.values*u.rad,
+                frame=hf,
+            )
+
+    focal_length = 2.152*u.m
+    cf = CameraFrame(
+            focal_length=focal_length,
+            telescope_pointing=pointing,
+            )
+
+    xy_coord = SkyCoord(az=az.values*u.rad, alt=alt.values*u.rad, frame=hf)
+    xy_coord = xy_coord.transform_to(cf)
+
+    return xy_coord.x.to(u.mm).value, xy_coord.y.to(u.mm).value
+
+
+def camera_to_horizontal(x, y, az_pointing, alt_pointing):
+    hf = AltAz()
+
+    pointing = SkyCoord(
+                alt=alt_pointing.values*u.rad,
+                az=az_pointing.values*u.rad,
+                frame=hf,
+            )
+
+    focal_length = 2.152*u.m
+    cf = CameraFrame(
+            focal_length=focal_length,
+            telescope_pointing=pointing,
+            )
+
+    altaz_coord = SkyCoord(x=x.values*u.mm, y=y.values*u.mm, frame=cf)
+    altaz_coord = altaz_coord.transform_to(hf)
+
+    return altaz_coord.alt.to(u.rad).value, altaz_coord.az.to(u.rad).value
+

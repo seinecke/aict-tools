@@ -23,7 +23,7 @@ class AICTConfig:
         'energy',
         'separator',
         'has_multiple_telescopes',
-        'class_name',
+        # 'class_name',
     )
 
     @classmethod
@@ -35,24 +35,19 @@ class AICTConfig:
         self.has_multiple_telescopes = config.get('multiple_telescopes', False)
         self.runs_key = config.get('runs_key', 'runs')
 
-        if self.has_multiple_telescopes:
-            self.telescope_events_key = config.get('telescope_events_key', 'events')
-            self.array_events_key = config.get('array_events_key', 'array_events')
 
-            self.array_event_id_column = config.get(
-                'array_event_id_column', 'array_event_id'
-            )
-            self.run_id_column = config.get('run_id_column', 'run_id')
-        else:
-            self.telescope_events_key = config.get('telescope_events_key', 'events')
-            self.run_id_column = config.get('run_id_column', 'run_id')
+        self.telescope_events_key = config.get('telescope_events_key', 'events')
+        self.array_events_key = config.get('array_events_key', 'array_events')
 
-            self.array_events_key = None
-            self.array_event_id_column = None
+        self.array_event_id_column = config.get(
+            'array_event_id_column', 'array_event_id'
+        )
+        self.run_id_column = config.get('run_id_column', 'run_id')
+
 
         self.seed = config.get('seed', 0)
         np.random.seed(self.seed)
-        self.class_name = config.get('class_name', 'gamma')
+        # self.class_name = config.get('class_name', 'gamma')
 
         self.disp = self.energy = self.separator = None
         if 'disp' in config:
@@ -76,9 +71,9 @@ class DispConfig:
         'columns_to_read_apply',
         'columns_to_read_train',
         'source_az_column',
-        'source_zd_column',
+        'source_alt_column',
         'pointing_az_column',
-        'pointing_zd_column',
+        'pointing_alt_column',
         'cog_x_column',
         'cog_y_column',
         'delta_column',
@@ -108,10 +103,10 @@ class DispConfig:
         self.features.sort()
 
         self.source_az_column = model_config.get('source_az_column', 'source_position_az')
-        self.source_zd_column = model_config.get('source_zd_column', 'source_position_zd')
+        self.source_alt_column = model_config.get('source_alt_column', 'source_position_alt')
 
         self.pointing_az_column = model_config.get('pointing_az_column', 'pointing_position_az')
-        self.pointing_zd_column = model_config.get('pointing_zd_column', 'pointing_position_zd')
+        self.pointing_alt_column = model_config.get('pointing_alt_column', 'pointing_position_alt')
         self.cog_x_column = model_config.get('cog_x_column', 'cog_x')
         self.cog_y_column = model_config.get('cog_y_column', 'cog_y')
         self.delta_column = model_config.get('delta_column', 'delta')
@@ -128,9 +123,9 @@ class DispConfig:
         self.columns_to_read_apply = list(cols)
         cols.update({
             self.pointing_az_column,
-            self.pointing_zd_column,
+            self.pointing_alt_column,
             self.source_az_column,
-            self.source_zd_column,
+            self.source_alt_column,
         })
         self.columns_to_read_train = list(cols)
 
@@ -146,6 +141,7 @@ class EnergyConfig:
         'columns_to_read_apply',
         'target_column',
         'log_target',
+        'class_name'
     ]
 
     def __init__(self, config):
@@ -173,6 +169,8 @@ class EnergyConfig:
             self.feature_generation = None
         self.features.sort()
 
+        self.class_name = model_config.get('class_name', 'energy')
+
         cols = set(model_config['features'])
         if self.feature_generation:
             cols.update(self.feature_generation.needed_columns)
@@ -192,6 +190,7 @@ class SeparatorConfig:
         'columns_to_read_train',
         'columns_to_read_apply',
         'calibrate_classifier',
+        'class_name'
     ]
 
     def __init__(self, config):
@@ -215,6 +214,8 @@ class SeparatorConfig:
         else:
             self.feature_generation = None
         self.features.sort()
+
+        self.class_name = model_config.get('class_name', 'gamma')
 
         cols = set(model_config['features'])
         if self.feature_generation:

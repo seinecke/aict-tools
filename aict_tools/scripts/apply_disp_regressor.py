@@ -8,6 +8,7 @@ from tqdm import tqdm
 from ..io import append_to_h5py, read_telescope_data_chunked
 from ..apply import predict_disp
 from ..configuration import AICTConfig
+from ..preprocessing import horizontal_to_camera, camera_to_horizontal
 
 
 @click.command()
@@ -15,7 +16,6 @@ from ..configuration import AICTConfig
 @click.argument('data_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('disp_model_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('sign_model_path', type=click.Path(exists=False, dir_okay=False))
-@click.option('-k', '--key', help='HDF5 key for h5py hdf5', default='events')
 @click.option('-n', '--n-jobs', type=int, help='Number of cores to use')
 @click.option('-y', '--yes', help='Do not prompt for overwrites', is_flag=True)
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
@@ -23,13 +23,15 @@ from ..configuration import AICTConfig
     '-N', '--chunksize', type=int,
     help='If given, only process the given number of events at once',
 )
-def main(configuration_path, data_path, disp_model_path, sign_model_path, key, chunksize, n_jobs, yes, verbose):
+def main(configuration_path, data_path, disp_model_path, sign_model_path, chunksize, n_jobs, yes, verbose):
     '''
-    Apply given model to data. Two columns are added to the file, energy_prediction
-    and energy_prediction_std
+    Apply given model to data. 
+    Columns specifying the predicted source position (in camera coordinates 
+    and in AltAz) and the prdicted distance between the CoG and the predicted
+    source position are added to the file.
 
     CONFIGURATION_PATH: Path to the config yaml file
-    DATA_PATH: path to the FACT data in a h5py hdf5 file, e.g. erna_gather_fits output
+    DATA_PATH: path to the CTA data in a h5py hdf5 file
     DISP_MODEL_PATH: Path to the pickled disp model.
     SIGN_MODEL_PATH: Path to the pickled sign model.
     '''
@@ -40,12 +42,16 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path, key, c
     model_config = config.disp
 
     columns_to_delete = [
-        'source_x_prediction',
-        'source_y_prediction',
+        'source_x',
+        'source_y',
+        'source_alt',
+        'source_az',
+        'source_alt_mean',
+        'source_az_mean',
+        'disp',
         'theta',
         'theta_deg',
         'theta_rec_pos',
-        'disp_prediction',
     ]
     for i in range(1, 6):
         columns_to_delete.extend([
@@ -57,14 +63,26 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path, key, c
     n_del_cols = 0
     with h5py.File(data_path, 'r+') as f:
         for column in columns_to_delete:
-            if column in f[key].keys():
+
+            if column in f[config.array_events_key].keys():
                 if not yes:
                     click.confirm(
                         'Dataset "{}" exists in file, overwrite?'.format(column),
                         abort=True,
                     )
                     yes = True
-                del f[key][column]
+                del f[config.array_events_key][column]
+                log.warn("Deleted {} from the feature set.".format(column))
+                n_del_cols += 1
+
+            if column in f[config.telescope_events_key].keys():
+                if not yes:
+                    click.confirm(
+                        'Dataset "{}" exists in file, overwrite?'.format(column),
+                        abort=True,
+                    )
+                    yes = True
+                del f[config.telescope_events_key][column]
                 log.warn("Deleted {} from the feature set.".format(column))
                 n_del_cols += 1
 
@@ -93,13 +111,27 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path, key, c
             df_data[model_config.features], disp_model, sign_model
         )
 
-        source_x = df_data.cog_x + disp * np.cos(df_data.delta)
-        source_y = df_data.cog_y + disp * np.sin(df_data.delta)
+        source_x = ( df_data[model_config.cog_x_column] 
+                    + disp * np.cos(df_data[model_config.delta_column]) )
+        source_y = ( df_data[model_config.cog_y_column] 
+                    + disp * np.sin(df_data[model_config.delta_column]) )
+
+        source_alt, source_az = camera_to_horizontal(
+                        x=source_x, y=source_y,
+                        az_pointing=df_data[model_config.pointing_az_column],
+                        alt_pointing=df_data[model_config.pointing_alt_column])
+
 
         with h5py.File(data_path, 'r+') as f:
-            append_to_h5py(f, source_x, key, 'source_x_prediction')
-            append_to_h5py(f, source_y, key, 'source_y_prediction')
-            append_to_h5py(f, disp, key, 'disp_prediction')
+            append_to_h5py(f, source_x, config.telescope_events_key, 'source_x')
+            append_to_h5py(f, source_y, config.telescope_events_key, 'source_y')
+            append_to_h5py(f, source_alt, config.telescope_events_key, 'source_alt')
+            append_to_h5py(f, source_az, config.telescope_events_key, 'source_az')
+            append_to_h5py(f, disp, config.telescope_events_key, 'disp')
+
+            if config.has_multiple_telescopes == False:
+                append_to_h5py(f, source_alt, config.array_events_key, 'source_alt_mean')
+                append_to_h5py(f, source_az, config.array_events_key, 'source_az_mean')
 
 
 if __name__ == '__main__':

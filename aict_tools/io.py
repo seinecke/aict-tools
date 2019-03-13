@@ -39,11 +39,11 @@ def drop_prediction_column(data_path, group_name, column_name, yes=True):
             del f[group_name][column_name + '_mean']
 
 
-def read_telescope_data_chunked(path, klaas_config, chunksize, columns, feature_generation_config=None):
+def read_telescope_data_chunked(path, config, chunksize, columns, feature_generation_config=None):
     '''
     Reads data from hdf5 file given as PATH and yields dataframes for each chunk
     '''
-    n_rows = h5py_get_n_rows(path, klaas_config.telescope_events_key)
+    n_rows = h5py_get_n_rows(path, config.telescope_events_key)
     if chunksize:
         n_chunks = int(np.ceil(n_rows / chunksize))
     else:
@@ -58,7 +58,7 @@ def read_telescope_data_chunked(path, klaas_config, chunksize, columns, feature_
 
         df = read_telescope_data(
             path,
-            klaas_config=klaas_config,
+            config=config,
             columns=columns,
             first=start,
             last=end
@@ -71,45 +71,36 @@ def read_telescope_data_chunked(path, klaas_config, chunksize, columns, feature_
         yield df, start, end
 
 
-def read_telescope_data(path, klaas_config, columns, feature_generation_config=None, n_sample=None, first=None, last=None):
+def read_telescope_data(path, config, columns, feature_generation_config=None, n_sample=None, first=None, last=None):
     '''
     Read given columns from data and perform a random sample if n_sample is supplied.
     Returns a single pandas data frame
     '''
     telescope_event_columns = None
     array_event_columns = None
-    if klaas_config.has_multiple_telescopes:
-        join_keys = [klaas_config.run_id_column, klaas_config.array_event_id_column]
-        if columns:
-            with h5py.File(path, 'r') as f:
-                array_event_columns = set(f[klaas_config.array_events_key].keys()) & set(columns)
-                telescope_event_columns = set(f[klaas_config.telescope_events_key].keys()) & set(columns)
-                array_event_columns |= set(join_keys)
-                telescope_event_columns |= set(join_keys)
 
-        telescope_events = read_data(
-            file_path=path,
-            key=klaas_config.telescope_events_key,
-            columns=telescope_event_columns,
-            first=first,
-            last=last,
-        )
-        array_events = read_data(
-            file_path=path,
-            key=klaas_config.array_events_key,
-            columns=array_event_columns,
-        )
+    join_keys = [config.run_id_column, config.array_event_id_column]
+    if columns:
+        with h5py.File(path, 'r') as f:
+            array_event_columns = set(f[config.array_events_key].keys()) & set(columns)
+            telescope_event_columns = set(f[config.telescope_events_key].keys()) & set(columns)
+            array_event_columns |= set(join_keys)
+            telescope_event_columns |= set(join_keys)
 
-        df = pd.merge(left=array_events, right=telescope_events, left_on=join_keys, right_on=join_keys)
+    telescope_events = read_data(
+        file_path=path,
+        key=config.telescope_events_key,
+        columns=telescope_event_columns,
+        first=first,
+        last=last,
+    )
+    array_events = read_data(
+        file_path=path,
+        key=config.array_events_key,
+        columns=array_event_columns,
+    )
 
-    else:
-        df = read_data(
-            file_path=path,
-            key=klaas_config.telescope_events_key,
-            columns=columns,
-            first=first,
-            last=last,
-        )
+    df = pd.merge(left=array_events, right=telescope_events, left_on=join_keys, right_on=join_keys)
 
     if n_sample is not None:
         if n_sample > len(df):
