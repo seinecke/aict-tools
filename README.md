@@ -26,7 +26,7 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 - `mc_alt` [rad]: True source position (altitude)
 - `mc_az` [rad]: True source position (azimuth)
 - `mc_core_x` [m]: True core position (x-coordinate)
-- `mc_core_y` [m]: True core position (x-coordinate)
+- `mc_core_y` [m]: True core position (y-coordinate)
 - `mc_energy` [TeV]: True energy
 - `mc_h_first_int` [m]: True height of first interaction
 - `mc_x_max [m]`: Height of the shower maximum
@@ -70,3 +70,51 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 - `shower_reuse`
 - `simtel_version`
 - `spectral_index`
+
+
+## Data Output Format
+
+The output hdf5 files include 3 tables: `telescope_events`, `array_events` and `runs`. The columns are the same as of the input PLUS the following:
+
+`telescope_events`:
+- `disp` [mm]: Distance between CoG and predicted source position
+- `source_x` [mm]: Predicted source position in camera coordinates (x-coordinate)
+- `source_y` [mm]: Predicted source position in camera coordinates (y-coordinate)
+- `source_alt` [rad]: Predicted source position (altitude)
+- `source_az` [rad]: Predicted source position (azimuth)
+- `energy`: Predicted energy
+- `gamma_score`: Predicted score of being a gamma-ray event
+
+
+`array_events`:
+- `energy_mean`: Mean (over multiple telescopes) of the predicted energy
+- `energy_std`: Standard deviation (over multiple telescopes) of the predicted energy
+- `gamma_score_mean`: Mean (over multiple telescopes) of the predicted gamma score
+- `source_alt_mean` [rad]: Mean (over multiple telescopes) of the predicted source position
+- `source_az_mean` [rad]: Mean (over multiple telescopes) of the predicted source position
+
+## Validation Output Format
+
+In addition, hdf5 files containing data for the validation of the models are stored. For each reconstruction task, one files is created.
+The output hdf5 files include ?? tables: `data`. The columns are described below.
+
+`aict_predictions_gh.hdf5`:
+- `cv_fold`: Index of the cross validation
+- `label`: True label (0: background, 1: signal)
+- `label_prediction`: Predicted label, assuming a threshold of 0.5 (0: background, 1: signal)
+- `probabilities`: Score of being signal (related to probability)
+
+`aict_predictions_energy.hdf5`:
+- `cv_fold`: Index of the cross validation
+- `label` [TeV]: True energy
+- `label_prediction` [TeV]: Predicted energy
+
+`aict_predictions_direction.hdf5`:
+- `cv_fold`: Index of the cross validation
+- `disp` [mm]: True disp
+- `disp_prediction` [mm]: Predicted disp
+- `mc_energy` [TeV]: True energy
+- `sign`: True sign
+- `sign_prediction`: Predicted sign (assuming threshold 0.5)
+- `sign_probabilities`: Score of being plus sign (related to probability)
+
