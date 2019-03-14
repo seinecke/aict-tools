@@ -1,5 +1,31 @@
 # aict-tools - CHEC Fork
 
+## Installation
+
+Pre-requisities: ctapipe
+
+```
+source activate cta-dev
+git clone https://github.com/seinecke/aict-tools.git
+cd aict-tools
+pip install -e .
+```
+
+## Configuration
+
+Download `Makefile`, `configs/chec_mono.yml` and `matplotlibrc` from ??? and store them in the same folder (preferably not in `aict-tools`).
+
+## Processing
+
+Adapt `build_dir` and `data_dir` paths in `Makefile`.
+In the folder where `Makefile` is stored: 
+```
+source activate cta-dev
+make
+```
+Check your `build_dir` for created plots, files and models ;-)
+
+
 ## Data Input Format
 
 The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `runs`. The columns are described below.
