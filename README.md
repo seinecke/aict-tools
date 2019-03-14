@@ -2,10 +2,11 @@
 
 ## Installation
 
-Pre-requisities: ctapipe
+Pre-requisities: ctapipe, pyfact
 
 ```
 source activate cta-dev
+pip install pyfact
 git clone https://github.com/seinecke/aict-tools.git
 cd aict-tools
 pip install -e .
