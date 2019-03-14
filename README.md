@@ -13,7 +13,7 @@ pip install -e .
 
 ## Configuration
 
-Download `Makefile`, `configs/chec_mono.yml` and `matplotlibrc` from ??? and store them in the same folder (preferably not in `aict-tools`).
+Download `Makefile`, `configs/chec_mono.yml` and `matplotlibrc` from https://github.com/cta-chec/CHECOnskySB/tree/master/CHECOnskySB/scripts/sabrina/d190228_analysis_chec and store them in the same folder (preferably not in `aict-tools`).
 
 ## Processing
 
