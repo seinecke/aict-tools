@@ -2,7 +2,7 @@
 
 ## Installation
 
-Pre-requisities: ctapipe, pyfact
+Pre-requisities: ctapipe (development version)
 
 ```
 source activate cta-dev
@@ -16,15 +16,25 @@ pip install -e .
 
 Download `Makefile`, `configs/chec_mono.yml` and `matplotlibrc` from https://github.com/cta-chec/CHECOnskySB/tree/master/CHECOnskySB/scripts/sabrina/d190228_analysis_chec and store them in the same folder (preferably not in `aict-tools`).
 
+## Pre-Processing
+
+It is assumed that you have files that have been processed with `extract_dl1.py`, `extract_hillas.py`, `merge_hillas.py` and `convert_hillas.py`. 
+If not, check here: https://github.com/cta-chec/CHECOnskySB/tree/master/CHECOnskySB/scripts
+
 ## Processing
 
-Adapt `build_dir` and `data_dir` paths in `Makefile`.
-In the folder where `Makefile` is stored: 
+Adapt `build_dir` and `data_dir` paths in the `Makefile`.
+Go to the folder where the `Makefile` is stored and type: 
 ```
 source activate cta-dev
 make
 ```
 Check your `build_dir` for created plots, files and models ;-)
+
+
+## Post-Processing
+
+If you are interested in the performance of your analysis, check here: https://github.com/cta-chec/CHECOnskySB/tree/master/CHECOnskySB/scripts/sabrina/d190301_performance
 
 
 ## Data Input Format
