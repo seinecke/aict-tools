@@ -54,10 +54,22 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 - `width` [deg]: Eigen value of PCA
 - `skewness` [deg]: The 3rd moment along the major axis
 - `kurtosis` [deg]: The 4th moment along the major axis
+- `nislands`: Number of islands that survived image cleaning
+- `n_survived_pixels`: Number of pixels that survived image cleaning
+- `leakage1_intensity`: Ratio between charge in the outer ring of the camera and total charge
+- `leakage1_pixel`: Ratio between number of pixels in the outer ring of the camera and number of survived pixels
+- `leakage2_intensity`: Ratio between charge in the 2 outer rings of the camera and total charge
+- `leakage2_pixel`: Ratio between number of pixels in the 2 outer rings of the camera and number of survived pixels
+- `concentration_1`: Ratio between highest charge and total charge
+- `concentration_2`: Ratio between 2 highest charges and total charge
+- `concentration_3`: Ratio between 3 highest charges and total charge
+- `tdeviation` [?]:
+- `tduration` [ns]: Duration between minimum and maximum extracted time of survived pixels
+- `tgradient` [?}:
 
 
 `array_events`:
-- `array_event_id`: The  of the event
+- `array_event_id`: The id of the event
 - `altitude_raw` [rad]: Telescope pointing altitude
 - `azimuth_raw` [rad]: Telescope pointing azimuth
 - `mc_alt` [rad]: True source position (altitude)
