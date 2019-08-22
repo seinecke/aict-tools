@@ -12,7 +12,8 @@ from ..preprocessing import horizontal_to_camera, camera_to_horizontal
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('data_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('disp_model_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('sign_model_path', type=click.Path(exists=False, dir_okay=False))
@@ -23,7 +24,10 @@ from ..preprocessing import horizontal_to_camera, camera_to_horizontal
     '-N', '--chunksize', type=int,
     help='If given, only process the given number of events at once',
 )
-def main(configuration_path, data_path, disp_model_path, sign_model_path, chunksize, n_jobs, yes, verbose):
+@click.option('-c', '--column_name', help='Name of column to be added', 
+              default='disp')
+def main(configuration_path, data_path, disp_model_path, sign_model_path, 
+         chunksize, n_jobs, yes, verbose, column_name):
     '''
     Apply given model to data. 
     Columns specifying the predicted source position (in camera coordinates 
@@ -127,7 +131,7 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path, chunks
             append_to_h5py(f, source_y, config.telescope_events_key, 'source_y')
             append_to_h5py(f, source_alt, config.telescope_events_key, 'source_alt')
             append_to_h5py(f, source_az, config.telescope_events_key, 'source_az')
-            append_to_h5py(f, disp, config.telescope_events_key, 'disp')
+            append_to_h5py(f, disp, config.telescope_events_key, column_name)
 
             if config.has_multiple_telescopes == False:
                 append_to_h5py(f, source_alt, config.array_events_key, 'source_alt_mean')

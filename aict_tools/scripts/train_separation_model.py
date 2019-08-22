@@ -17,13 +17,15 @@ log = logging.getLogger()
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('signal_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('background_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('predictions_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('model_path', type=click.Path(exists=False, dir_okay=False))
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
-def main(configuration_path, signal_path, background_path, predictions_path, model_path, verbose):
+def main(configuration_path, signal_path, background_path, predictions_path, 
+         model_path, verbose):
     '''
     Train a classifier on signal and background monte carlo data and write the model
     to MODEL_PATH in pmml or pickle format.

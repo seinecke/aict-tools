@@ -4,24 +4,33 @@ from sklearn import model_selection
 from sklearn import metrics
 from tqdm import tqdm
 import numpy as np
+import h5py
 
-from fact.io import write_data
-from ..io import pickle_model, read_telescope_data
+from fact.io import write_data, read_data
+from ..io import pickle_model, read_telescope_data, append_to_h5py
 from ..preprocessing import convert_to_float32
 from ..configuration import AICTConfig
 import logging
+
+#added to save cv scores in file
+import re
+#
 
 logging.basicConfig()
 log = logging.getLogger()
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('signal_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('predictions_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('model_path', type=click.Path(exists=False, dir_okay=False))
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
-def main(configuration_path, signal_path, predictions_path, model_path, verbose):
+@click.option('-c', '--column_name', 
+              help='Column name to be given to prediction', default='energy')
+def main(configuration_path, signal_path, predictions_path, model_path, verbose, 
+         column_name):
     '''
     Train an energy regressor simulated gamma.
     Both pmml and pickle format are supported for the output.
@@ -30,7 +39,7 @@ def main(configuration_path, signal_path, predictions_path, model_path, verbose)
 
     SIGNAL_PATH: Path to the signal data
 
-    PREDICTIONS_PATH : path to the file where the mc predictions are stored.
+    PREDICTIONS_PATH : path to the file where the mc predictions are going to be stored.
 
     MODEL_PATH: Path to save the model to.
         Allowed extensions are .pkl and .pmml.
@@ -46,6 +55,8 @@ def main(configuration_path, signal_path, predictions_path, model_path, verbose)
         feature_generation_config=model_config.feature_generation,
         n_sample=model_config.n_signal
     )
+
+    df['prediction_energy'] = np.zeros(len(df)) * np.nan
 
     log.info('Total number of events: {}'.format(len(df)))
 
@@ -63,10 +74,12 @@ def main(configuration_path, signal_path, predictions_path, model_path, verbose)
     n_cross_validations = model_config.n_cross_validations
     regressor = model_config.model
     log.info('Starting {} fold cross validation... '.format(n_cross_validations))
+
     scores = []
     cv_predictions = []
 
-    kfold = model_selection.KFold(n_splits=n_cross_validations, shuffle=True, random_state=config.seed)
+    kfold = model_selection.KFold(n_splits=n_cross_validations, 
+                        shuffle=True, random_state=config.seed)
 
     for fold, (train, test) in tqdm(enumerate(kfold.split(df_train.values))):
 
@@ -82,18 +95,33 @@ def main(configuration_path, signal_path, predictions_path, model_path, verbose)
 
         scores.append(metrics.r2_score(cv_y_test, cv_y_prediction))
 
+        df.prediction_energy[test] = cv_y_prediction
+
         cv_predictions.append(pd.DataFrame({
-            'label': cv_y_test,
-            'label_prediction': cv_y_prediction,
+            'energy': cv_y_test,
+            'energy_prediction': cv_y_prediction,
             'cv_fold': fold
         }))
 
     predictions_df = pd.concat(cv_predictions, ignore_index=True)
 
     log.info('writing predictions from cross validation')
-    write_data(predictions_df, predictions_path, mode='w')
 
+    write_data(predictions_df, predictions_path, mode='w')
+    
+    #convert lists to numpy array to find mean
     scores = np.array(scores)
+    
+    #write telescope data as a new file (equivalent to apply)
+    log.info('Writing new data set with predictions column')
+
+    with h5py.File(signal_path, 'r+') as f:
+            append_to_h5py(
+                f, df.prediction_energy, 
+                config.telescope_events_key, 
+                column_name
+            )
+
     log.info('Cross validated R^2 scores: {}'.format(scores))
     log.info('Mean R^2 score from CV: {:0.4f} ± {:0.4f}'.format(
         scores.mean(), scores.std()
@@ -112,7 +140,7 @@ def main(configuration_path, signal_path, predictions_path, model_path, verbose)
             regressor,
             feature_names=list(df_train.columns),
             model_path=model_path,
-            label_text='estimated_energy',
+            label_text=column_name,
     )
 
 

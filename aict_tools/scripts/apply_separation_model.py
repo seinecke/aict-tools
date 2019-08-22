@@ -11,14 +11,13 @@ from ..configuration import AICTConfig
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('data_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model_path', type=click.Path(exists=True, dir_okay=False))
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
-@click.option(
-    '-N', '--chunksize', type=int,
-    help='If given, only process the given number of events at once'
-)
+@click.option('-N', '--chunksize', type=int,
+              help='If given, only process the given number of events at once')
 @click.option('-y', '--yes', help='Do not prompt for overwrites', is_flag=True)
 def main(configuration_path, data_path, model_path, chunksize, yes, verbose):
     '''
@@ -75,7 +74,10 @@ def main(configuration_path, data_path, model_path, chunksize, yes, verbose):
 
         with h5py.File(data_path, 'r+') as f:
             append_to_h5py(
-                f, prediction, config.telescope_events_key, prediction_column_name
+                f, 
+                prediction, 
+                config.telescope_events_key, 
+                prediction_column_name
             )
 
 
@@ -89,10 +91,16 @@ def main(configuration_path, data_path, model_path, chunksize, yes, verbose):
     std = d[prediction_column_name]['std'].values
     with h5py.File(data_path, 'r+') as f:
         append_to_h5py(
-            f, mean, config.array_events_key, prediction_column_name + '_mean'
+            f, 
+            mean, 
+            config.array_events_key, 
+            prediction_column_name + '_mean'
         )
         append_to_h5py(
-            f, std, config.array_events_key, prediction_column_name + '_std'
+            f, 
+            std, 
+            config.array_events_key, 
+            prediction_column_name + '_std'
         )      
 
 

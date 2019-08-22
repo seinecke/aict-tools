@@ -4,10 +4,11 @@ from sklearn import model_selection
 from sklearn import metrics
 from tqdm import tqdm
 import numpy as np
+import h5py
 
-from fact.io import write_data
+from fact.io import write_data, read_data
 from ..preprocessing import horizontal_to_camera
-from ..io import pickle_model, read_telescope_data
+from ..io import pickle_model, read_telescope_data, append_to_h5py
 from ..preprocessing import convert_to_float32, calc_true_disp
 from ..feature_generation import feature_generation
 from ..configuration import AICTConfig
@@ -16,14 +17,18 @@ import logging
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+               type=click.Path(exists=True, dir_okay=False))
 @click.argument('signal_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('predictions_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('disp_model_path', type=click.Path(exists=False, dir_okay=False))
 @click.argument('sign_model_path', type=click.Path(exists=False, dir_okay=False))
 @click.option('-k', '--key', help='HDF5 key for h5py hdf5', default='events')
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
-def main(configuration_path, signal_path, predictions_path, disp_model_path, sign_model_path, key, verbose):
+@click.option('-c', '--column_name', 
+              help='Column name to be given to prediction', default='disp')
+def main(configuration_path, signal_path, predictions_path, disp_model_path, 
+        sign_model_path, key, verbose, column_name):
     '''
     Train two learners to be able to reconstruct the source position.
     One regressor for disp and one classifier for the sign of delta.
@@ -49,8 +54,6 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
     config = AICTConfig.from_yaml(configuration_path)
     model_config = config.disp
 
-    np.random.seed(config.seed)
-
     disp_regressor = model_config.disp_regressor
     sign_classifier = model_config.sign_classifier
 
@@ -63,11 +66,11 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
     log.info('Loading data')
     df = read_telescope_data(
         signal_path, config,
-        #model_config.columns_to_read_train,
         columns,
         feature_generation_config=model_config.feature_generation,
         n_sample=model_config.n_signal
     )
+
     log.info('Total number of events: {}'.format(len(df)))
 
     source_x, source_y = horizontal_to_camera(
@@ -92,6 +95,8 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
     mc_energies = df_train[config.energy.target_column]
     df_train = df_train[config.disp.features]
 
+    df['prediction_disp'] = np.zeros(len(df)) * np.nan
+
     log.info('Events after nan-dropping: {} '.format(len(df_train)))
 
     target_disp = df['true_disp'].loc[df_train.index]
@@ -100,6 +105,7 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
     log.info('Starting {} fold cross validation... '.format(
         model_config.n_cross_validations
     ))
+    
     scores_disp = []
     scores_sign = []
     cv_predictions = []
@@ -125,7 +131,10 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
         cv_sign_proba = sign_classifier.predict_proba(cv_x_test)[:, 1]
 
         scores_disp.append(metrics.r2_score(cv_disp_test, cv_disp_prediction))
+        
         scores_sign.append(metrics.accuracy_score(cv_sign_test, cv_sign_prediction))
+        
+        df.prediction_disp[test] = cv_disp_prediction
 
         cv_predictions.append(pd.DataFrame({
             'disp': cv_disp_test,
@@ -153,6 +162,15 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path, sig
     log.info('Mean accuracy from CV: {:0.4f} ± {:0.4f}'.format(
         scores_sign.mean(), scores_sign.std()
     ))
+
+    log.info('Writing new data set with predictions column')
+
+    with h5py.File(signal_path, 'r+') as f:
+            append_to_h5py(
+                f, df.prediction_disp, 
+                config.telescope_events_key, 
+                column_name
+            )
 
     log.info('Building new model on complete data set...')
     # set random seed again to make sure different settings

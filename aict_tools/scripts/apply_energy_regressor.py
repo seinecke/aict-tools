@@ -13,7 +13,8 @@ from ..configuration import AICTConfig
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('data_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model_path', type=click.Path(exists=True, dir_okay=False))
 @click.option('-n', '--n-jobs', type=int, help='Number of cores to use')
@@ -23,7 +24,10 @@ from ..configuration import AICTConfig
     '-N', '--chunksize', type=int,
     help='If given, only process the given number of events at once',
 )
-def main(configuration_path, data_path, model_path, chunksize, n_jobs, yes, verbose):
+@click.option('-c', '--column_name', help='Name of column to be added', 
+              default='energy')
+def main(configuration_path, data_path, model_path, chunksize, n_jobs, yes, 
+         verbose, column_name):
     '''
     Apply given model to data.
     Columns specifying the predicted energy are added to the file.
@@ -37,7 +41,7 @@ def main(configuration_path, data_path, model_path, chunksize, n_jobs, yes, verb
     config = AICTConfig.from_yaml(configuration_path)
     model_config = config.energy
 
-    prediction_column_name = model_config.class_name #+ '_prediction'
+    prediction_column_name = column_name
     drop_prediction_column(
         data_path, group_name=config.telescope_events_key,
         column_name=prediction_column_name, yes=yes
