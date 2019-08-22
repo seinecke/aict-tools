@@ -21,6 +21,7 @@ class AICTConfig:
         'is_array',
         'disp',
         'energy',
+        'x_max',
         'separator',
         'has_multiple_telescopes',
         # 'class_name',
@@ -55,6 +56,9 @@ class AICTConfig:
 
         if 'energy' in config:
             self.energy = EnergyConfig(config)
+
+        if 'x_max' in config:
+            self.x_max = XMaxConfig(config)
 
         if 'separator' in config:
             self.separator = SeparatorConfig(config)
@@ -222,3 +226,52 @@ class SeparatorConfig:
             cols.update(self.feature_generation.needed_columns)
         self.columns_to_read_train = list(cols)
         self.columns_to_read_apply = list(cols)
+
+
+class XMaxConfig:
+    __slots__ = [
+        'model',
+        'n_cross_validations',
+        'n_signal',
+        'features',
+        'feature_generation',
+        'columns_to_read_train',
+        'columns_to_read_apply',
+        'target_column',
+        'log_target',
+        'class_name'
+    ]
+
+    def __init__(self, config):
+        model_config = config['x_max']
+        self.model = eval(model_config['regressor'])
+        self.features = model_config['features'].copy()
+
+        self.n_signal = model_config.get('n_signal', None)
+        k = 'n_cross_validations'
+        setattr(self, k, model_config.get(k, config.get(k, 5)))
+
+        self.target_column = model_config.get(
+            'target_column', 'corsika_event_header_total_energy'
+        )
+        self.log_target = model_config.get('log_target', False)
+
+        gen_config = model_config.get('feature_generation')
+        source_features = find_used_source_features(self.features, gen_config)
+        if len(source_features):
+            raise ValueError('Source dependent features used: {}'.format(source_features))
+        if gen_config:
+            self.features.extend(gen_config['features'].keys())
+            self.feature_generation = FeatureGenerationConfig(**gen_config)
+        else:
+            self.feature_generation = None
+        self.features.sort()
+
+        self.class_name = model_config.get('class_name', 'x_max')
+
+        cols = set(model_config['features'])
+        if self.feature_generation:
+            cols.update(self.feature_generation.needed_columns)
+        self.columns_to_read_apply = list(cols)
+        cols.add(self.target_column)
+        self.columns_to_read_train = list(cols)
