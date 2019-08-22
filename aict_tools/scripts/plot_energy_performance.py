@@ -16,7 +16,8 @@ from ..plotting import (
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('performance_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model_path', type=click.Path(exists=True, dir_okay=False))
 @click.option('-o', '--output', type=click.Path(exists=False, dir_okay=False))
@@ -38,21 +39,23 @@ def main(configuration_path, performance_path, model_path, output, key):
     # Plot confusion
     figures.append(plt.figure())
     ax = figures[-1].add_subplot(1, 1, 1)
-    ax = plot_regressor_confusion(df, ax=ax)
+    ax = plot_regressor_confusion(df, ax=ax, label='energy', 
+                                  pred='energy_prediction')
     ax.set_xlabel(r'$\log_{10}(E_{\mathrm{true}} \,\, / \,\, \mathrm{TeV})$')
     ax.set_ylabel(r'$\log_{10}(E_{\mathrm{rec}} \,\, / \,\, \mathrm{TeV})$')
 
     # Plot bias
     figures.append(plt.figure())
     ax = figures[-1].add_subplot(1, 1, 1)
-    ax = plot_bias(df, bins=15, ax=ax)
+    ax = plot_bias(df, bins=15, ax=ax, label='energy', pred='energy_prediction')
     ax.set_xlabel(r'$E_{\mathrm{true}} \,\, / \,\, \mathrm{TeV}$')
     ax.set_ylabel('Bias')
 
     # Plot resolution
     figures.append(plt.figure())
     ax = figures[-1].add_subplot(1, 1, 1)
-    ax = plot_resolution(df, bins=15, ax=ax)
+    ax = plot_resolution(df, bins=15, ax=ax, label='energy', 
+                         pred='energy_prediction')
     ax.set_xlabel(r'$E_{\mathrm{true}} \,\, / \,\, \mathrm{TeV}$')
     ax.set_ylabel('Resolution')
 

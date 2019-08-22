@@ -23,40 +23,22 @@ def split_indices(idx, n_total, fractions):
 @click.command()
 @click.argument('input_path', type=click.Path(exists=True, file_okay=True))
 @click.argument('output_basename')
-@click.option(
-    '--fraction', '-f', multiple=True, type=float,
-    help='Fraction of events to use for this part'
-)
-@click.option(
-    '--name',
-    '-n',
-    multiple=True,
-    help='name for one dataset'
-)
-@click.option(
-    '-i',
-    '--inkey',
-    help='HDF5 key for h5py hdf5 of the input file',
-    default='events', show_default=True,
-)
-@click.option(
-    '--key',
-    '-k',
-    help='Name for the hdf5 group in the output',
-    default='events',
-    show_default=True,
-)
-@click.option(
-    '--telescope', '-t', type=click.Choice(['fact', 'cta']), default='fact',
-    show_default=True, help='Which telescope created the data',
-)
-@click.option(
-    '--fmt', type=click.Choice(['csv', 'hdf5', 'hdf', 'h5']), default='hdf5',
-    show_default=True, help='The output format',
-)
+@click.option('--fraction', '-f', multiple=True, type=float,
+                help='Fraction of events to use for this part')
+@click.option('--name','-n', multiple=True, help='name for one dataset')
+@click.option('-i', '--inkey', help='HDF5 key for h5py hdf5 of the input file',
+              default='events', show_default=True)
+@click.option('--key', '-k', help='Name for the hdf5 group in the output',
+              default='events', show_default=True)
+@click.option('--telescope', '-t', type=click.Choice(['fact', 'cta']), 
+             default='cta', show_default=True, 
+             help='Which telescope created the data')
+@click.option('--fmt', type=click.Choice(['csv', 'hdf5', 'hdf', 'h5']), 
+              default='hdf5', show_default=True, help='The output format')
 @click.option('-s', '--seed', help='Random Seed', type=int, default=0, show_default=True)
 @click.option('-v', '--verbose', is_flag=True, help='Verbose log output',)
-def main(input_path, output_basename, fraction, name, inkey, key, telescope, fmt, seed, verbose):
+def main(input_path, output_basename, fraction, name, inkey, key, telescope, 
+         fmt, seed, verbose):
     '''
     Split dataset in INPUT_PATH into multiple parts for given fractions and names
     Outputs hdf5 or csv files to OUTPUT_BASENAME_NAME.FORMAT
@@ -96,8 +78,10 @@ def split_telescope_data(input_path, output_basename, fraction, name):
         path = output_basename + '_' + part_name + '.hdf5'
         log.info('Writing {} runs events to: {}'.format(n, path))
         write_data(selected_runs, path, key='runs', use_h5py=True, mode='w')
-        write_data(selected_array_events, path, key='array_events', use_h5py=True, mode='a')
-        write_data(selected_telescope_events, path, key='telescope_events', use_h5py=True, mode='a')
+        write_data(selected_array_events, path, key='array_events', 
+                    use_h5py=True, mode='a')
+        write_data(selected_telescope_events, path, key='telescope_events', 
+                    use_h5py=True, mode='a')
         log.debug(f'selected runs {set(selected_run_ids)}')
         log.debug(f'Runs minus selected runs {ids - set(selected_run_ids)}')
         ids = ids - set(selected_run_ids)

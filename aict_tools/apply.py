@@ -80,6 +80,19 @@ def predict_separator(df, model):
     return score
 
 
+def predict_x_max(df, model, log_target=False):
+    df_features = convert_to_float32(df)
+    valid = check_valid_rows(df_features)
+
+    x_max_prediction = np.full(len(df_features), np.nan)
+    x_max_prediction[valid] = model.predict(df_features.loc[valid].values)
+
+    if log_target:
+        x_max_prediction[valid] = np.exp(x_max_prediction[valid])
+
+    return x_max_prediction
+    
+
 def create_mask_h5py(input_path, selection_config, key='events', start=None, end=None, mode="r"):
 
     with h5py.File(input_path) as infile:

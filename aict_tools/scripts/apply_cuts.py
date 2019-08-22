@@ -8,7 +8,8 @@ from ..apply import create_mask_h5py, apply_cuts_h5py_chunked
 
 
 @click.command()
-@click.argument('configuration_path', type=click.Path(exists=True, dir_okay=False))
+@click.argument('configuration_path', 
+                type=click.Path(exists=True, dir_okay=False))
 @click.argument('input_path', type=click.Path(exists=True, dir_okay=False))
 @click.argument('output_path', type=click.Path(exists=False, dir_okay=False))
 @click.option('-N', '--chunksize', type=int, help='Chunksize to use')
@@ -47,7 +48,8 @@ def main(configuration_path, input_path, output_path, chunksize, key, verbose):
             for name, dataset in infile[key].items():
 
                 if dataset.ndim == 1:
-                    group.create_dataset(name, data=dataset[mask], maxshape=(None, ))
+                    group.create_dataset(name, data=dataset[mask], 
+                                         maxshape=(None, ))
                 elif dataset.ndim == 2:
                     group.create_dataset(
                         name, data=dataset[mask, :], maxshape=(None, 2)
