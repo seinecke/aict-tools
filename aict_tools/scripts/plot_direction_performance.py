@@ -2,6 +2,7 @@ import click
 import logging
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import numpy as np
 from sklearn.externals import joblib
 from ..configuration import AICTConfig
 import fact.io
@@ -68,47 +69,55 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
 
 
     # Plot confusion for different energies
+    max_disp = max(
+                np.nanmax(df['disp']), 
+                np.nanmax(df['disp_prediction'])
+                )
+    energies_min = np.nanmin(df[config.energy.target_column])
+    energies_max = np.nanmax(df[config.energy.target_column])
+    energies = np.logspace(np.log10(energies_min),np.log10(energies_max),5)
+
     figures.append(plt.figure())
     ax = figures[-1].add_subplot(2, 2, 1)
-    ax = plot_regressor_confusion(df[df[config.energy.target_column]<2], 
+    ax = plot_regressor_confusion(df[df[config.energy.target_column]<energies[1]], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
     ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{mm}$')
-    ax.set_xlim([0,300])
-    ax.set_ylim([0,300])
-    ax.plot([0,500], [0,500], color='#D03A3B', alpha=0.5)
-    ax.text(0.1,0.9,'< 2 TeV', fontsize=8,
+    ax.set_xlim([0,max_disp])
+    ax.set_ylim([0,max_disp])
+    ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
+    ax.text(0.1,0.9,'< {:1.0f} TeV'.format(energies[1]), fontsize=8,
         transform=ax.transAxes, horizontalalignment='left')
 
     ax = figures[-1].add_subplot(2, 2, 2)
-    ax = plot_regressor_confusion(df[(df[config.energy.target_column]>2) 
-        & (df[config.energy.target_column]<10)], 
+    ax = plot_regressor_confusion(df[(df[config.energy.target_column]>energies[1]) 
+        & (df[config.energy.target_column]<energies[2])], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
-    ax.set_xlim([0,300])
-    ax.set_ylim([0,300])
-    ax.plot([0,500], [0,500], color='#D03A3B', alpha=0.5)
-    ax.text(0.1,0.9,'2 - 10 TeV', fontsize=8,
+    ax.set_xlim([0,max_disp])
+    ax.set_ylim([0,max_disp])
+    ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
+    ax.text(0.1,0.9,'{:1.0f} - {:1.0f} TeV'.format(energies[1], energies[2]), fontsize=8,
         transform=ax.transAxes, horizontalalignment='left')
 
     ax = figures[-1].add_subplot(2, 2, 3)
-    ax = plot_regressor_confusion(df[(df[config.energy.target_column]>10) 
-        & (df[config.energy.target_column]<50)], 
+    ax = plot_regressor_confusion(df[(df[config.energy.target_column]>energies[2]) 
+        & (df[config.energy.target_column]<energies[3])], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
     ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
     ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{mm}$')
-    ax.set_xlim([0,300])
-    ax.set_ylim([0,300])
-    ax.plot([0,500], [0,500], color='#D03A3B', alpha=0.5)
-    ax.text(0.1,0.9,'10 - 100 TeV', fontsize=8,
+    ax.set_xlim([0,max_disp])
+    ax.set_ylim([0,max_disp])
+    ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
+    ax.text(0.1,0.9,'{:1.0f} - {:1.0f} TeV'.format(energies[2], energies[3]), fontsize=8,
         transform=ax.transAxes, horizontalalignment='left')
 
     ax = figures[-1].add_subplot(2, 2, 4)
-    ax = plot_regressor_confusion(df[df[config.energy.target_column]>50], 
+    ax = plot_regressor_confusion(df[df[config.energy.target_column]>energies[3]], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
     ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
-    ax.set_xlim([0,300])
-    ax.set_ylim([0,300])
-    ax.plot([0,500], [0,500], color='#D03A3B', alpha=0.5)
-    ax.text(0.1,0.9,'> 100 TeV', fontsize=8,
+    ax.set_xlim([0,max_disp])
+    ax.set_ylim([0,max_disp])
+    ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
+    ax.text(0.1,0.9,'> {:1.0f} TeV'.format(energies[3]), fontsize=8,
         transform=ax.transAxes, horizontalalignment='left')
 
 
