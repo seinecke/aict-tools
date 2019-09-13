@@ -54,7 +54,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord, AltAz
 from ctapipe.coordinates import CameraFrame
 
-def horizontal_to_camera(az, alt, az_pointing, alt_pointing):
+def horizontal_to_camera(az, alt, az_pointing, alt_pointing, focal_length):
     hf = AltAz()
 
     pointing = SkyCoord(
@@ -63,9 +63,8 @@ def horizontal_to_camera(az, alt, az_pointing, alt_pointing):
                 frame=hf,
             )
 
-    focal_length = 2.152*u.m
     cf = CameraFrame(
-            focal_length=focal_length,
+            focal_length=focal_length.values*u.m,
             telescope_pointing=pointing,
             )
 
@@ -75,7 +74,7 @@ def horizontal_to_camera(az, alt, az_pointing, alt_pointing):
     return xy_coord.x.to(u.mm).value, xy_coord.y.to(u.mm).value
 
 
-def camera_to_horizontal(x, y, az_pointing, alt_pointing):
+def camera_to_horizontal(x, y, az_pointing, alt_pointing, focal_length):
     hf = AltAz()
 
     pointing = SkyCoord(
@@ -84,9 +83,8 @@ def camera_to_horizontal(x, y, az_pointing, alt_pointing):
                 frame=hf,
             )
 
-    focal_length = 2.152*u.m
     cf = CameraFrame(
-            focal_length=focal_length,
+            focal_length=focal_length.values*u.m,
             telescope_pointing=pointing,
             )
 

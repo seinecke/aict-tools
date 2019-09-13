@@ -8,7 +8,7 @@ from tqdm import tqdm
 from ..io import append_to_h5py, read_telescope_data_chunked
 from ..apply import predict_disp
 from ..configuration import AICTConfig
-from ..preprocessing import horizontal_to_camera, camera_to_horizontal
+from ..preprocessing import camera_to_horizontal
 
 
 @click.command()
@@ -103,8 +103,13 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
         disp_model.n_jobs = n_jobs
         sign_model.n_jobs = n_jobs
 
+    # Add focal_length to be read for coordinate transformation
+    columns = model_config.columns_to_read_apply
+    columns.append('focal_length')
+
+
     df_generator = read_telescope_data_chunked(
-        data_path, config, chunksize, model_config.columns_to_read_apply,
+        data_path, config, chunksize, columns,
         feature_generation_config=model_config.feature_generation
     )
 
@@ -123,7 +128,8 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
         source_alt, source_az = camera_to_horizontal(
                         x=source_x, y=source_y,
                         az_pointing=df_data[model_config.pointing_az_column],
-                        alt_pointing=df_data[model_config.pointing_alt_column])
+                        alt_pointing=df_data[model_config.pointing_alt_column],
+                        focal_length=df_data['focal_length'])
 
 
         with h5py.File(data_path, 'r+') as f:

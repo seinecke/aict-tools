@@ -62,6 +62,7 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path,
 
     columns = model_config.columns_to_read_train
     columns.append(config.energy.target_column)
+    columns.append('focal_length')
 
     log.info('Loading data')
     df = read_telescope_data(
@@ -78,6 +79,7 @@ def main(configuration_path, signal_path, predictions_path, disp_model_path,
         alt=df[model_config.source_alt_column],
         az_pointing=df[model_config.pointing_az_column],
         alt_pointing=df[model_config.pointing_alt_column],
+        focal_length=df['focal_length']
     )
 
     df['true_disp'], df['true_sign'] = calc_true_disp(
