@@ -42,18 +42,25 @@ If you are interested in the performance of your analysis, check here: https://g
 The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `runs`. The columns are described below.
 
 `telescope_events`:
+(The following features need to be in the file in the specified units)
 - `array_event_id`: The id of the event
 - `run_id`: The id of the MC simulation run
+- `altitude_raw` [rad]: Telescope pointing altitude
+- `azimuth_raw` [rad]: Telescope pointing azimuth
+- `true_source_alt` [rad]: True source position (altitude)
+- `true_source_az` [rad]: True source position (azimuth)
+- `x` [m]: The x-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
+- `y` [m]: The y-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
 - `intensity`: The total charge
-- `x` [mm]: The x-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
-- `y` [mm]: The y-coordinate of the Center of Gravity (mean of pixel coordinates weighted with pixel charge)
+
+(The following features are not mandatory)
 - `psi` [rad]: Angle between `length` and x-axis
-- `r` [deg]: Center of Gravity in polar coordinates
+- `r` [m]: Center of Gravity in polar coordinates
 - `phi` [rad]: Center of Gravity in polar coordinates
-- `length` [deg]: Eigen value of PCA
-- `width` [deg]: Eigen value of PCA
-- `skewness` [deg]: The 3rd moment along the major axis
-- `kurtosis` [deg]: The 4th moment along the major axis
+- `length` [m]: Eigen value of PCA
+- `width` [m]: Eigen value of PCA
+- `skewness`: The 3rd moment along the major axis
+- `kurtosis`: The 4th moment along the major axis
 - `nislands`: Number of islands that survived image cleaning
 - `n_survived_pixels`: Number of pixels that survived image cleaning
 - `leakage1_intensity`: Ratio between charge in the outer ring of the camera and total charge
@@ -70,10 +77,6 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 
 `array_events`:
 - `array_event_id`: The id of the event
-- `altitude_raw` [rad]: Telescope pointing altitude
-- `azimuth_raw` [rad]: Telescope pointing azimuth
-- `mc_alt` [rad]: True source position (altitude)
-- `mc_az` [rad]: True source position (azimuth)
 - `mc_core_x` [m]: True core position (x-coordinate)
 - `mc_core_y` [m]: True core position (y-coordinate)
 - `mc_energy` [TeV]: True energy
@@ -126,17 +129,17 @@ The input hdf5 files include 3 tables: `telescope_events`, `array_events` and `r
 The output hdf5 files include 3 tables: `telescope_events`, `array_events` and `runs`. The columns are the same as of the input PLUS the following:
 
 `telescope_events`:
-- `disp` [mm]: Distance between CoG and predicted source position
-- `source_x` [mm]: Predicted source position in camera coordinates (x-coordinate)
-- `source_y` [mm]: Predicted source position in camera coordinates (y-coordinate)
+- `disp` [m]: Distance between CoG and predicted source position
+- `source_x` [m]: Predicted source position in camera coordinates (x-coordinate)
+- `source_y` [m]: Predicted source position in camera coordinates (y-coordinate)
 - `source_alt` [rad]: Predicted source position (altitude)
 - `source_az` [rad]: Predicted source position (azimuth)
-- `energy`: Predicted energy
+- `energy [TeV]`: Predicted energy
 - `gamma_score`: Predicted score of being a gamma-ray event
 
 
 `array_events`:
-- `energy_mean`: Mean (over multiple telescopes) of the predicted energy
+- `energy_mean` [TeV]: Mean (over multiple telescopes) of the predicted energy
 - `energy_std`: Standard deviation (over multiple telescopes) of the predicted energy
 - `gamma_score_mean`: Mean (over multiple telescopes) of the predicted gamma score
 - `source_alt_mean` [rad]: Mean (over multiple telescopes) of the predicted source position
