@@ -41,6 +41,7 @@ setup(
             'aict_train_x_max_regressor = aict_tools.scripts.train_x_max_regressor:main',
             'aict_apply_x_max_regressor = aict_tools.scripts.apply_x_max_regressor:main',
             'aict_split_data = aict_tools.scripts.split_data:main',
+            'aict_equalize_data = aict_tools.scripts.equalize_data:main',
             'aict_plot_gh_performance = aict_tools.scripts.plot_gh_performance:main',
             'aict_plot_energy_performance = aict_tools.scripts.plot_energy_performance:main',
             'aict_plot_direction_performance = aict_tools.scripts.plot_direction_performance:main',

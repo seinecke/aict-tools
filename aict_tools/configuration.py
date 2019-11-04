@@ -24,6 +24,7 @@ class AICTConfig:
         'x_max',
         'separator',
         'has_multiple_telescopes',
+        #'selection'
         # 'class_name',
     )
 
@@ -44,6 +45,8 @@ class AICTConfig:
             'array_event_id_column', 'array_event_id'
         )
         self.run_id_column = config.get('run_id_column', 'run_id')
+
+        #self.selection = config.get('selection')
 
 
         self.seed = config.get('seed', 0)

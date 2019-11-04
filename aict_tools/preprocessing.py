@@ -52,7 +52,7 @@ def calc_true_disp(source_x, source_y, cog_x, cog_y, delta):
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord, AltAz
-from ctapipe.coordinates import CameraFrame
+from ctapipe.coordinates import CameraFrame, EngineeringCameraFrame
 
 def horizontal_to_camera(az, alt, az_pointing, alt_pointing, focal_length):
     hf = AltAz()
@@ -63,15 +63,23 @@ def horizontal_to_camera(az, alt, az_pointing, alt_pointing, focal_length):
                 frame=hf,
             )
 
-    cf = CameraFrame(
-            focal_length=focal_length.values*u.m,
-            telescope_pointing=pointing,
-            )
+    # cf = CameraFrame(
+    #         focal_length=focal_length.values*u.m,
+    #         telescope_pointing=pointing,
+    #         )
+
+    cf = EngineeringCameraFrame(
+        n_mirrors=2,
+        #location=LOCATION,
+        #obstime=obstime,
+        focal_length=focal_length.values*u.m,
+        telescope_pointing=pointing,
+    )
 
     xy_coord = SkyCoord(az=az.values*u.rad, alt=alt.values*u.rad, frame=hf)
     xy_coord = xy_coord.transform_to(cf)
 
-    return xy_coord.x.to(u.mm).value, xy_coord.y.to(u.mm).value
+    return xy_coord.x.to(u.m).value, xy_coord.y.to(u.m).value
 
 
 def camera_to_horizontal(x, y, az_pointing, alt_pointing, focal_length):
@@ -83,12 +91,20 @@ def camera_to_horizontal(x, y, az_pointing, alt_pointing, focal_length):
                 frame=hf,
             )
 
-    cf = CameraFrame(
-            focal_length=focal_length.values*u.m,
-            telescope_pointing=pointing,
-            )
+    # cf = CameraFrame(
+    #         focal_length=focal_length.values*u.m,
+    #         telescope_pointing=pointing,
+    #         )
 
-    altaz_coord = SkyCoord(x=x.values*u.mm, y=y.values*u.mm, frame=cf)
+    cf = EngineeringCameraFrame(
+        n_mirrors=2,
+        #location=LOCATION,
+        #obstime=obstime,
+        focal_length=focal_length.values*u.m,
+        telescope_pointing=pointing,
+    )
+
+    altaz_coord = SkyCoord(x=x.values*u.m, y=y.values*u.m, frame=cf)
     altaz_coord = altaz_coord.transform_to(hf)
 
     return altaz_coord.alt.to(u.rad).value, altaz_coord.az.to(u.rad).value

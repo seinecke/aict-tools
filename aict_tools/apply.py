@@ -93,7 +93,7 @@ def predict_x_max(df, model, log_target=False):
     return x_max_prediction
     
 
-def create_mask_h5py(input_path, selection_config, key='events', start=None, end=None, mode="r"):
+def create_mask_h5py(input_path, selection_config, key='telescope_events', start=None, end=None, mode="r"):
 
     with h5py.File(input_path) as infile:
 
@@ -122,7 +122,7 @@ def apply_cuts_h5py_chunked(
         input_path,
         output_path,
         selection_config,
-        key='events',
+        key='telescope_events',
         chunksize=100000,
         progress=True,
         ):
