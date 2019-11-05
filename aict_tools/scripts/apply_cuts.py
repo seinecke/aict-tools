@@ -15,7 +15,7 @@ from ..apply import create_mask_h5py, apply_cuts_h5py_chunked
 @click.argument('output_path', type=click.Path(exists=False, dir_okay=False))
 @click.option('-k', '--key', help='Name of the hdf5 group', default='telescope_events')
 @click.option('-v', '--verbose', help='Verbose log output', is_flag=True)
-def main(configuration_path, input_path, output_path, chunksize, key, verbose):
+def main(configuration_path, input_path, output_path, key, verbose):
     '''
     Apply cuts given in CONFIGURATION_PATH to the data in INPUT_PATH and
     write the result to OUTPUT_PATH.
