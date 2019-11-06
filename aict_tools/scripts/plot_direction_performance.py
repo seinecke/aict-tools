@@ -64,8 +64,8 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = plot_regressor_confusion(df, ax=ax, log_xy=False,
                             label='disp', pred='disp_prediction')
     ax.plot([0,500], [0,500], color='#D03A3B', alpha=0.5)
-    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
-    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{m}$')
+    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{m}$')
 
 
     # Plot confusion for different energies
@@ -81,7 +81,7 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = figures[-1].add_subplot(2, 2, 1)
     ax = plot_regressor_confusion(df[df[config.energy.target_column]<energies[1]], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
-    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{m}$')
     ax.set_xlim([0,max_disp])
     ax.set_ylim([0,max_disp])
     ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
@@ -102,8 +102,8 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = plot_regressor_confusion(df[(df[config.energy.target_column]>energies[2]) 
         & (df[config.energy.target_column]<energies[3])], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
-    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
-    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{m}$')
+    ax.set_ylabel(r'$disp_{\mathrm{rec}} \,\, / \,\, \mathrm{m}$')
     ax.set_xlim([0,max_disp])
     ax.set_ylim([0,max_disp])
     ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
@@ -113,7 +113,7 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = figures[-1].add_subplot(2, 2, 4)
     ax = plot_regressor_confusion(df[df[config.energy.target_column]>energies[3]], 
         ax=ax, log_xy=False, label='disp', pred='disp_prediction')
-    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{m}$')
     ax.set_xlim([0,max_disp])
     ax.set_ylim([0,max_disp])
     ax.plot([0,max_disp], [0,max_disp], color='#D03A3B', alpha=0.5)
@@ -126,7 +126,7 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = figures[-1].add_subplot(1, 1, 1)
     ax = plot_bias(df, bins=15, ax=ax, log_x=False,
         label='disp', pred='disp_prediction')
-    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{m}$')
     ax.set_ylabel('Bias')
 
     # Plot resolution
@@ -134,7 +134,7 @@ def main(configuration_path, performance_path, model_path_sign, model_path_disp,
     ax = figures[-1].add_subplot(1, 1, 1)
     ax = plot_resolution(df, bins=15, ax=ax, log_x=False,
                     label='disp', pred='disp_prediction')
-    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{mm}$')
+    ax.set_xlabel(r'$disp_{\mathrm{true}} \,\, / \,\, \mathrm{m}$')
     ax.set_ylabel('Resolution')
 
     # Plot feature importances

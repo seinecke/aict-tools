@@ -10,6 +10,8 @@ from ..apply import predict_disp
 from ..configuration import AICTConfig
 from ..preprocessing import camera_to_horizontal
 
+from fact.io import read_data
+
 
 @click.command()
 @click.argument('configuration_path', 
@@ -107,7 +109,6 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
     columns = model_config.columns_to_read_apply
     columns.append('focal_length')
 
-
     df_generator = read_telescope_data_chunked(
         data_path, config, chunksize, columns,
         feature_generation_config=model_config.feature_generation
@@ -130,7 +131,6 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
                         az_pointing=df_data[model_config.pointing_az_column],
                         alt_pointing=df_data[model_config.pointing_alt_column],
                         focal_length=df_data['focal_length'])
-
 
         with h5py.File(data_path, 'r+') as f:
             append_to_h5py(f, source_x, config.telescope_events_key, 'source_x')

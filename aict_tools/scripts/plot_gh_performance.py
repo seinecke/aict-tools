@@ -11,6 +11,7 @@ from ..plotting import (
     plot_probabilities,
     plot_precision_recall,
     plot_feature_importances,
+    plot_auc
 )
 
 
@@ -43,6 +44,10 @@ def main(configuration_path, performance_path, model_path, output, key):
     ax = figures[-1].add_subplot(1, 1, 1)
     plot_roc(df, model, ax=ax)
 
+    # Plot auc vs energy
+    figures.append(plt.figure())
+    ax = figures[-1].add_subplot(1, 1, 1)
+    ax = plot_auc(df, model, ax=ax)
 
     # Plot hists of probas
     figures.append(plt.figure())

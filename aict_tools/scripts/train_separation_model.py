@@ -50,9 +50,12 @@ def main(configuration_path, signal_path, background_path, predictions_path,
     config = AICTConfig.from_yaml(configuration_path)
     model_config = config.separator
 
+    columns = model_config.columns_to_read_train
+    columns.append(config.energy.target_column)
+
     log.info('Loading signal data')
     df_signal = read_telescope_data(
-        signal_path, config, model_config.columns_to_read_train,
+        signal_path, config, columns,
         feature_generation_config=model_config.feature_generation,
         n_sample=model_config.n_signal
     )
@@ -61,7 +64,7 @@ def main(configuration_path, signal_path, background_path, predictions_path,
 
     log.info('Loading background data')
     df_background = read_telescope_data(
-        background_path, config, model_config.columns_to_read_train,
+        background_path, config, columns,
         feature_generation_config=model_config.feature_generation,
         n_sample=model_config.n_background
     )
@@ -70,13 +73,18 @@ def main(configuration_path, signal_path, background_path, predictions_path,
 
     df_full = pd.concat([df_background, df_signal], ignore_index=True)
 
-    df_training = convert_to_float32(df_full[model_config.features])
+    df_training = df_full.copy()
     log.debug('Total training events: {}'.format(len(df_training)))
 
     df_training.dropna(how='any', inplace=True)
     log.debug('Training events after dropping nans: {}'.format(len(df_training)))
 
-    label = df_full.loc[df_training.index, 'label']
+    mc_energies = convert_to_float32(df_training[config.energy.target_column])
+    label = df_training['label']
+    df_training = convert_to_float32(df_training[model_config.features])
+
+    #label = df_full.loc[df_training.index, 'label']
+
 
     n_gammas = len(label[label == 1])
     n_protons = len(label[label == 0])
@@ -118,6 +126,7 @@ def main(configuration_path, signal_path, background_path, predictions_path,
             'label_prediction': y_prediction,
             'probabilities': y_probas,
             'cv_fold': fold,
+            'mc_energy': mc_energies[test],
         }))
         aucs.append(metrics.roc_auc_score(ytest, y_probas))
 

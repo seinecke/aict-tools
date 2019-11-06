@@ -237,6 +237,71 @@ def plot_roc(performance_df, model, ax=None, label='label', pred='probabilities'
 
     return ax
 
+def plot_auc(performance_df, model, bins=10, label='label', pred='probabilities', ax=None):
+
+    ax = ax or plt.gca()
+
+    energies = np.logspace(
+            np.log10(performance_df.mc_energy.min()),
+            np.log10(performance_df.mc_energy.max())+0.0001,
+            bins + 1
+        )
+
+    performance_df['bin'] = np.digitize(performance_df.mc_energy, energies)
+
+    # Plot total AUC
+    roc_aucs = []
+
+    for it, df in performance_df.groupby('cv_fold'):
+
+        roc_aucs.append(metrics.roc_auc_score(df[label], df[pred]))
+
+    ax.errorbar(
+            np.mean(performance_df.mc_energy),
+            np.mean(roc_aucs),
+            xerr=0.5 * (energies[-1] - energies[0]),
+            yerr=np.std(roc_aucs),
+            label='Total AUC',
+            linestyle='',
+    )
+    ax.legend(loc='lower right')
+
+    # Plot AUC binned in energy
+    binned = pd.DataFrame(index=np.arange(1, len(energies)))
+    binned['center'] = 0.5 * (energies[:-1] + energies[1:])
+    binned['width'] = np.diff(energies)
+    binned['auc'] = np.zeros(bins)
+    binned['auc_unc'] = np.zeros(bins)
+
+    for i in range(1, bins+1):
+
+        roc_aucs = []
+
+        for it, df in performance_df[performance_df['bin'] == i].groupby('cv_fold'):
+            
+            if len(set(df.label)) != 1:
+                roc_aucs.append(metrics.roc_auc_score(df[label], df[pred]))
+
+        if len(roc_aucs)>0:
+            binned.auc[i] = np.mean(roc_aucs)
+            binned['auc_unc'][i] = np.std(roc_aucs)
+
+    ax.errorbar(
+            binned['center'],
+            binned['auc'],
+            xerr=0.5 * binned['width'],
+            yerr=binned['auc_unc'],
+            linestyle='',
+    )
+
+    ax.set_xscale('log')
+    ax.set_ylim([0,1])
+    ax.set_xlabel(r'$E_{\mathrm{true}} \,\, / \,\, \mathrm{TeV}$')
+    ax.set_ylabel('AUC Score')
+    
+
+    return ax
+
 
 def plot_probabilities(performance_df, model, ax=None, 
                         classnames=('Proton', 'Gamma'), 
