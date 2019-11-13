@@ -1,5 +1,6 @@
 import click
 import numpy as np
+import pandas as pd
 from sklearn.externals import joblib
 import logging
 import h5py
@@ -108,6 +109,8 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
     # Add focal_length to be read for coordinate transformation
     columns = model_config.columns_to_read_apply
     columns.append('focal_length')
+    columns.append('run_id')
+    columns.append('array_event_id')
 
     df_generator = read_telescope_data_chunked(
         data_path, config, chunksize, columns,
@@ -115,6 +118,9 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
     )
 
     log.info('Predicting on data...')
+
+    chunked_frames = []
+
     for df_data, start, end in tqdm(df_generator):
 
         disp = predict_disp(
@@ -132,6 +138,11 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
                         alt_pointing=df_data[model_config.pointing_alt_column],
                         focal_length=df_data['focal_length'])
 
+        d = df_data[['run_id', 'array_event_id']].copy()
+        d['source_alt'] = source_alt
+        d['source_az'] = source_az
+        chunked_frames.append(d)
+
         with h5py.File(data_path, 'r+') as f:
             append_to_h5py(f, source_x, config.telescope_events_key, 'source_x')
             append_to_h5py(f, source_y, config.telescope_events_key, 'source_y')
@@ -139,9 +150,25 @@ def main(configuration_path, data_path, disp_model_path, sign_model_path,
             append_to_h5py(f, source_az, config.telescope_events_key, 'source_az')
             append_to_h5py(f, disp, config.telescope_events_key, column_name)
 
-            if config.has_multiple_telescopes == False:
-                append_to_h5py(f, source_alt, config.array_events_key, 'source_alt_mean')
-                append_to_h5py(f, source_az, config.array_events_key, 'source_az_mean')
+            # if config.has_multiple_telescopes == False:
+            #     append_to_h5py(f, source_alt, config.array_events_key, 'source_alt_mean')
+            #     append_to_h5py(f, source_az, config.array_events_key, 'source_az_mean')
+
+    d = pd.concat(chunked_frames).groupby(
+            ['run_id', 'array_event_id'], sort=False
+        ).agg(['mean', 'std'])
+
+    mean_alt = d['source_alt']['mean'].values
+    mean_az = d['source_az']['mean'].values
+    std_alt = d['source_alt']['std'].values
+    std_az = d['source_az']['std'].values
+
+    with h5py.File(data_path, 'r+') as f:
+        append_to_h5py(f, mean_alt, config.array_events_key, 'source_alt_mean')
+        append_to_h5py(f, mean_az, config.array_events_key, 'source_az_mean')
+        append_to_h5py(f, std_alt, config.array_events_key, 'source_alt_std') 
+        append_to_h5py(f, std_az, config.array_events_key, 'source_az_std')            
+
 
 
 if __name__ == '__main__':
